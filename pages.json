@@ -1,12 +1,58 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
+			"path" : "pages/issue-list/issue-list",
+			"style" : 
+			{
+				"navigationBarTitleText" : "问题列表"
+			}
+		},
+		{
+			"path" : "pages/issue-detail/issue-detail",
+			"style" : 
+			{
+				"navigationBarTitleText" : "问题详情"
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app"
 			}
 		}
 	],
+	"tabBar": {
+	    "color": "#666666",
+	    "selectedColor": "#007AFF",
+	    "backgroundColor": "#FFFFFF",
+	    "borderStyle": "black",
+	    "list": [
+	      {
+	        "pagePath": "pages/issue-list/issue-list",
+	        "text": "问题列表",
+	        "iconPath": "static/tab-home.png"
+	        // "selectedIconPath": "static/tab-home-active.png"
+	      },
+	      {
+	        "pagePath": "pages/index/index",
+	        "text": "新增检查",
+	        "iconPath": "static/tab-check.png"
+	        // "selectedIconPath": "static/tab-check-active.png"
+	      },
+	      {
+	        "pagePath": "",
+	        "text": "统计分析",
+	        "iconPath": "static/tab-chart.png"
+	        // "selectedIconPath": "static/tab-chart-active.png"
+	      },
+	      {
+	        "pagePath": "",
+	        "text": "我的",
+	        "iconPath": "static/tab-mine.png"
+	        // "selectedIconPath": "static/tab-mine-active.png"
+	      }
+	    ]
+	  },
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
