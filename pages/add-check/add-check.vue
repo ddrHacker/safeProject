@@ -64,13 +64,12 @@
     </view>
 
     <!-- AI识别结果 -->
-    <view class="card">
+    <!-- <view class="card">
       <view class="section-title">AI识别结果</view>
       <view v-if="aiResults.length === 0" class="empty-ai">暂无识别结果，请点击开始检查</view>
 
       <view v-for="(item, index) in aiResults" :key="index" class="ai-item">
         <view class="ai-header">
-          <!-- <checkbox v-model="item.checked" /> -->
 		  <view class="check-box" :class="{checked: item.checked}" @click="toggleCheck(index)"></view>
           <text class="ai-title">不符合项 {{ index + 1 }}</text>
         </view>
@@ -78,7 +77,61 @@
         <view class="ai-std">依据：{{ item.rule }}</view>
         <view class="ai-suggest">整改建议：{{ item.suggest }}</view>
       </view>
-    </view>
+    </view> -->
+	<!-- AI识别结果 -->
+	<view class="card">
+	  <!-- 修改头部：变成左右布局 -->
+	  <view class="section-header">
+		<view class="section-title" style="margin-bottom:0;">AI识别结果</view>
+		<view class="add-manual-btn" @click="openManualModal">+ 手动添加</view>
+	  </view>
+	  
+	  <!-- 列表显示逻辑不变 -->
+	  <view v-if="aiResults.length === 0" class="empty-ai">暂无识别结果，请点击开始检查或手动添加</view>
+
+	  <view v-for="(item, index) in aiResults" :key="index" class="ai-item">
+		<view class="ai-header">
+		  <view class="check-box" :class="{checked: item.checked}" @click="toggleCheck(index)"></view>
+		  <text class="ai-title">不符合项 {{ index + 1 }}</text>
+		  <!-- 可选：手动添加的允许删除 -->
+		  <text v-if="item.isManual" class="delete-text" @click.stop="removeResult(index)">删除</text>
+		</view>
+		<view class="ai-text"><strong>隐患描述：</strong>{{ item.desc }}</view>
+		<view class="ai-std"><strong>检查依据：</strong>{{ item.rule }}</view>
+		<view class="ai-suggest"><strong>整改建议：</strong>{{ item.suggest }}</view>
+	  </view>
+	</view>
+
+	<!-- ... 其他原有代码 (整改信息、按钮组) ... -->
+
+	<!-- 新增：手动添加弹窗 -->
+	<view class="modal-mask" v-if="showManualModal" @click.stop="">
+	  <view class="modal-content">
+		<view class="modal-title">手动添加不符合项</view>
+		
+		<view class="form-item">
+		  <text class="label">隐患描述</text>
+		  <textarea class="input textarea" v-model="manualForm.desc" placeholder="请输入具体隐患情况" />
+		</view>
+		
+		<view class="form-item">
+		  <text class="label">参考法规 (选择)</text>
+		  <picker :range="ruleOptions" :value="manualForm.ruleIndex" @change="onRuleChange">
+			<view class="picker-value">{{ ruleOptions[manualForm.ruleIndex] }}</view>
+		  </picker>
+		</view>
+		
+		<view class="form-item">
+		  <text class="label">整改建议</text>
+		  <input class="input" v-model="manualForm.suggest" placeholder="请输入整改建议" />
+		</view>
+
+		<view class="modal-btns">
+		  <button class="cancel-btn" @click="closeManualModal">取消</button>
+		  <button class="confirm-btn" @click="confirmManualAdd">确定添加</button>
+		</view>
+	  </view>
+	</view>
 
     <!-- 整改信息 -->
     <view class="card">
@@ -149,10 +202,25 @@ export default {
       // --- 三级联动相关数据 End ---
 
       inspector: '',
-      problemTypes: ['选择问题类型', '消防安全', '设备隐患'],
+      problemTypes: ['选择问题类型', '设备管理','电力设施','应急管理','消防安全','安全设施','污染防治','职业健康','工艺安全','生产运行','仪器仪表','数字化','三违行为','能力意识','作业许可','承包商','交通安全','基础工作','能量隔离','化学药品','隐蔽工程'],
       problemIndex: 0,
       dutyPerson: '',
-      aiResults: []
+      aiResults: [],
+	  // --- 新增：手动添加相关数据 ---
+	  showManualModal: false, // 弹窗显隐
+	  ruleOptions: [ // 模拟法规数据库
+	    '请选择参考法规',
+	    'GB 50016-2014 建筑设计防火规范',
+	    'AQ 3013-2008 安全标准化规范',
+	    'SY/T 6277-2005 含硫油气田安全规程',
+	    'GB 2894-2008 安全标志及其使用导则',
+	    '其他通用安全规定'
+	  ],
+	  manualForm: {
+	    desc: '',
+	    ruleIndex: 0,
+	    suggest: ''
+	  }
     }
   },
   created() {
@@ -243,16 +311,64 @@ export default {
       // 使用 Vue.set 或者 splice 保证响应式，或者直接赋值后 forceUpdate
       this.photos.splice(i, 1, null);
     },
-    startAI() {
-      uni.showLoading({ title: 'AI识别中...' });
-      setTimeout(() => {
-        uni.hideLoading();
-        this.aiResults = [
-          { desc: '灭火器压力不足，存在安全隐患', rule: 'GB 50140-2005 第5.1.3条', suggest: '及时更换压力不足灭火器', checked: false },
-          { desc: '安全通道被杂物阻塞', rule: 'AQ 3013-2008 第6.2.1条', suggest: '立即清理通道杂物', checked: false }
-        ]
-      }, 1000);
-    },
+    // startAI() {
+    //   uni.showLoading({ title: 'AI识别中...' });
+    //   setTimeout(() => {
+    //     uni.hideLoading();
+    //     this.aiResults = [
+    //       { desc: '灭火器压力不足，存在安全隐患', rule: 'GB 50140-2005 第5.1.3条', suggest: '及时更换压力不足灭火器', checked: false },
+    //       { desc: '安全通道被杂物阻塞', rule: 'AQ 3013-2008 第6.2.1条', suggest: '立即清理通道杂物', checked: false }
+    //     ]
+    //   }, 1000);
+    // },
+	startAI() {
+	  if (this.photos.filter(p => p).length === 0) {
+	    return uni.showToast({ title: '请先上传照片', icon: 'none' });
+	  }
+	
+	  uni.showLoading({ title: 'AI识别中...' });
+	
+	  // 收集非空图片
+	  const files = this.photos
+	    .filter(p => p)
+	    .map((path, index) => ({ name: `file${index}`, uri: path }));
+	
+	  uni.uploadFile({
+	    url: 'http://127.0.0.1:8000/safeDetect/startai/',
+	    files: files,
+	    name: 'file',
+	    success: (res) => {
+	      // console.log("AI识别结果返回：", res);
+	
+	      try {
+	        const data = JSON.parse(res.data);
+	
+	        if (data.status !== 200) {
+	          uni.showToast({ title: '识别失败', icon: 'none' });
+	          return;
+	        }
+	
+	        // 接收后端识别结果
+	        this.aiResults = data.results.map(item => ({
+	          desc: item.desc,
+	          rule: item.rule,
+	          suggest: item.suggest,
+	          checked: false
+	        }));
+	      } catch (e) {
+	        console.error("解析错误", e);
+	        uni.showToast({ title: '结果解析失败', icon: 'none' });
+	      }
+	    },
+	    fail: (err) => {
+	      console.log("请求失败: ", err);
+	      uni.showToast({ title: 'AI识别失败', icon: 'none' });
+	    },
+	    complete: () => {
+	      uni.hideLoading();
+	    }
+	  });
+	},
     saveDraft() {
       uni.showToast({title: '已保存草稿', icon: 'none'})
     },
@@ -260,23 +376,99 @@ export default {
       this.aiResults[index].checked = !this.aiResults[index].checked
     },
     submitForm() {
-      const selected = this.aiResults.filter(i => i.checked)
-      
+		
+      const selected = this.aiResults.filter(i => i.checked);
+	  // 收集非空图片
+	  const files = this.photos
+	    .filter(p => p)
+	    .map((path, index) => ({ name: `file${index}`, uri: path }));
+      // console.log(files);
+	  
       // 校验单位是否已选
+	  if (files.length === 0) return uni.showToast({title: '请添加现场检查图片', icon: 'none'})
       if (!this.unitLabel) return uni.showToast({title: '请选择被检查单位', icon: 'none'})
+      if (!this.inspector) return uni.showToast({title: '请输入检查人', icon: 'none'})
+      if (!this.dutyPerson) return uni.showToast({title: '请输入责任人', icon: 'none'})
+      if (this.problemIndex === 0) return uni.showToast({title: '请选择问题类型', icon: 'none'})
       
       if (selected.length === 0 && this.aiResults.length > 0) {
          return uni.showToast({title: '请确认AI识别的问题', icon: 'none'})
       }
-
+	  
+	  //后端接口
+	  
+	  
       // 清空
       this.photos = [null, null, null, null];
       this.aiResults = [];
       this.unitLabel = ''; // 重置单位
       this.inspector = '';
+	  this.dutyPerson = '';
+	  this.problemIndex = 0;
       
       uni.showToast({title: '提交成功'})
-    }
+    },
+	
+	// --- 新增：手动添加相关方法 ---
+	    
+	// 1. 打开弹窗
+	openManualModal() {
+	  // 重置表单
+	  this.manualForm = {
+		desc: '',
+		ruleIndex: 0,
+		suggest: ''
+	  };
+	  this.showManualModal = true;
+	},
+
+	// 2. 关闭弹窗
+	closeManualModal() {
+	  this.showManualModal = false;
+	},
+
+	// 3. 监听弹窗内法规选择
+	onRuleChange(e) {
+	  this.manualForm.ruleIndex = e.detail.value;
+	},
+
+	// 4. 确认添加
+	confirmManualAdd() {
+	  const { desc, ruleIndex, suggest } = this.manualForm;
+	  
+	  if (!desc) return uni.showToast({title:'请输入隐患描述', icon:'none'});
+	  if (ruleIndex === 0) return uni.showToast({title:'请选择参考法规', icon:'none'});
+	  if (!suggest) return uni.showToast({title:'请输入整改建议', icon:'none'});
+
+	  // 构造新数据对象
+	  const newItem = {
+		desc: desc,
+		rule: this.ruleOptions[ruleIndex],
+		suggest: suggest,
+		checked: true, // 手动添加的默认选中
+		isManual: true // 标记为手动添加
+	  };
+
+	  // 添加到结果列表
+	  this.aiResults.push(newItem);
+	  
+	  // 关闭弹窗并提示
+	  this.showManualModal = false;
+	  uni.showToast({title: '添加成功'});
+	},
+	
+	// 5. 删除某一项 (配合模板中的删除按钮)
+	removeResult(index) {
+	  uni.showModal({
+		title: '提示',
+		content: '确定删除该项吗？',
+		success: (res) => {
+		  if (res.confirm) {
+			this.aiResults.splice(index, 1);
+		  }
+		}
+	  })
+	}
   }
 }
 </script>
@@ -354,5 +546,106 @@ export default {
 /* 在原有的 style 中添加 */
 .picker-value.placeholder {
   color: #999; /* 未选择时显示灰色 */
+}
+
+/* ... 原有的 CSS 保持不变 ... */
+
+/* 新增：头部左右布局 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+/* 新增：手动添加按钮样式 */
+.add-manual-btn {
+  font-size: 26rpx;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+  padding: 6rpx 20rpx;
+  border-radius: 30rpx;
+  background-color: #eff6ff;
+}
+.add-manual-btn:active {
+  background-color: #dbeafe;
+}
+
+/* 新增：空状态提示微调 */
+.empty-ai {
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+  padding: 30rpx 0;
+}
+
+/* 新增：删除文字按钮 */
+.delete-text {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  margin-left: auto; /* 靠右对齐 */
+  padding: 10rpx;
+}
+
+/* 新增：textarea样式 */
+.textarea {
+  height: 160rpx;
+  width: 100%;
+}
+
+/* --- 新增：弹窗相关样式 --- */
+.modal-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  width: 80%;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  animation: popUp 0.2s ease-out;
+}
+
+@keyframes popUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30rpx;
+  color: #333;
+}
+
+.modal-btns {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40rpx;
+}
+
+.cancel-btn, .confirm-btn {
+  width: 45%;
+  font-size: 30rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 12rpx;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.confirm-btn {
+  background: #3b82f6;
+  color: #fff;
 }
 </style>
