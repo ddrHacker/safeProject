@@ -19,14 +19,6 @@
         />
       </view>
       
-      <!-- 测试账户提示 -->
-      <view class="test-hint">
-        <text class="hint-text">测试账户:</text>
-        <text class="hint-account">检查人员: inspector / 123456</text>
-        <text class="hint-account">被检查方: inspected / 123456</text>
-        <text class="hint-account">检查主管: supervisor / 123456</text>
-      </view>
-      
       <button 
         class="login-btn" 
         @click="handleLogin"
@@ -40,6 +32,9 @@
 </template>
 
 <script>
+// 1. 引入 MD5 库 (如果没有使用npm，请修改为你的相对路径，如 '@/utils/md5.js')
+import md5 from 'js-md5';
+
 export default {
   data() {
     return {
@@ -49,184 +44,80 @@ export default {
     }
   },
   methods: {
-    async handleLogin() {
+    handleLogin() {
+      // 1. 基础校验
       if (!this.username.trim()) {
-        uni.showToast({ title: '请输入用户名', icon: 'none' });
-        return;
+        return uni.showToast({ title: '请输入用户名', icon: 'none' });
       }
       if (!this.password.trim()) {
-        uni.showToast({ title: '请输入密码', icon: 'none' });
-        return;
+        return uni.showToast({ title: '请输入密码', icon: 'none' });
       }
-      
+
       this.loading = true;
-      
-      try {
-        // 模拟登录验证
-        setTimeout(() => {
-          // 定义三种角色的测试账户
-          const testAccounts = {
-            // 检查人员（执行检查任务）
-            'inspector': {
-              password: '123456',
-              userInfo: {
-                userId: 1001,
-                username: 'inspector',
-                nickname: '张检查员',
-                role: 'inspector',
-                department: '安全检查部',
-                permissions: ['add_check', 'view_issues', 'upload_photos']
-              }
-            },
-            // 被检查方（接收检查结果）
-            'inspected': {
-              password: '123456',
-              userInfo: {
-                userId: 2001,
-                username: 'inspected',
-                nickname: '李被检方',
-                role: 'inspected',
-                company: '被检查单位',
-                department: '安全管理部门',
-                permissions: ['view_own_issues', 'confirm_issues', 'view_reports']
-              }
-            },
-            // 检查主管（管理检查任务）
-            'supervisor': {
-              password: '123456',
-              userInfo: {
-                userId: 3001,
-                username: 'supervisor',
-                nickname: '王主管',
-                role: 'supervisor',
-                department: '安全监管部',
-                permissions: ['manage_checks', 'view_all_issues', 'approve_reports', 'assign_tasks', 'statistics']
-              }
-            },
-            // 备用测试账户
-            'admin': {
-              password: '123456',
-              userInfo: {
-                userId: 9999,
-                username: 'admin',
-                nickname: '系统管理员',
-                role: 'admin',
-                permissions: ['all']
-              }
-            }
-          };
-          
-          const account = testAccounts[this.username];
-          
-          if (account && account.password === this.password) {
-            // 登录成功处理
-            uni.setStorageSync('token', 'token_' + Date.now() + '_' + this.username);
-            uni.setStorageSync('userInfo', account.userInfo);
+
+      // 2. 密码加密 (通常后端会要求 md5 加密)
+      // 有些后端可能要求加盐(salt)，例如: md5(this.password + 'my_salt')
+      const encryptedPassword = md5(this.password);
+
+      // 3. 发起请求
+      uni.request({
+        url: uni.$baseUrl+'/appv1/login/', // 替换为真实接口地址
+        method: 'POST',
+        data: {
+          username: this.username,
+          password: encryptedPassword
+        },
+        success: (res) => {
+          // 假设后端返回格式: { code: 200, msg: "success", data: { token: "...", user: { ... } } }
+          if (res.data.code === 200) {
             
-            // 显示欢迎信息
-            const roleNames = {
-              'inspector': '检查人员',
-              'inspected': '被检查方',
-              'supervisor': '检查主管',
-              'admin': '系统管理员'
-            };
+            const loginData = res.data.data;
             
-            uni.showToast({ 
-              title: `登录成功，欢迎${roleNames[account.userInfo.role] || '用户'}`,
-              icon: 'success',
-              duration: 2000
-            });
+            // 4. 存储用户信息
+            // (1) 存 Token (用于后续请求拦截器添加 Header)
+            uni.setStorageSync('token', loginData.token);
             
-            // 根据不同角色跳转到不同界面
-            this.redirectByRole(account.userInfo.role);
+            // (2) 存用户详细信息 (真实姓名、头像等)
+            uni.setStorageSync('userInfo', loginData.user);
             
+            // (3) ★存用户角色 (非常重要，用于之前的 TabBar 权限判断)
+            // 假设后端返回的字段是 loginData.user.role (例如 'inspector' 或 'inspected')
+            uni.setStorageSync('userRole', loginData.user.role);
+
+            uni.showToast({ title: '登录成功', icon: 'success' });
+
+            // 5. 延迟跳转
+            setTimeout(() => {
+              // ★ 关键点：如果 issue-list 是 TabBar 页面，必须用 switchTab
+              // 如果它不是 TabBar 页面，请改用 uni.reLaunch
+              uni.switchTab({
+                url: '/pages/issue-list/issue-list',
+                success: () => {
+                  console.log('跳转成功');
+                },
+                fail: (err) => {
+                  console.error('跳转失败，可能是因为该页面未在 pages.json 的 tabBar 中注册', err);
+                  // 如果 switchTab 失败，尝试用 reLaunch
+                  uni.reLaunch({ url: '/pages/issue-list/issue-list' });
+                }
+              });
+            }, 1000);
+
           } else {
-            // 登录失败
+            // 登录失败逻辑
             uni.showToast({ 
-              title: '用户名或密码错误', 
-              icon: 'none',
-              duration: 2000
+              title: res.data.msg || '用户名或密码错误', 
+              icon: 'none' 
             });
           }
-          
+        },
+        fail: () => {
+          uni.showToast({ title: '网络请求失败', icon: 'none' });
+        },
+        complete: () => {
           this.loading = false;
-        }, 800);
-        
-      } catch (error) {
-        uni.showToast({ 
-          title: error.message || '登录失败', 
-          icon: 'none' 
-        });
-        this.loading = false;
-      }
-    },
-    
-    // 根据角色跳转到不同界面
-    redirectByRole(role) {
-      // 延迟跳转，让用户看到成功提示
-      setTimeout(() => {
-        let targetPage = '';
-        let navigationType = 'switchTab'; // 默认使用switchTab
-        
-        // 根据角色决定跳转到哪个页面
-        switch(role) {
-          case 'inspector':
-            // 检查人员：主要负责新增检查任务
-            targetPage = '/pages/add-check/add-check';
-            navigationType = 'switchTab';
-            console.log('检查人员 -> 新增检查页面');
-            break;
-            
-          case 'inspected':
-            // 被检查方：查看自己被检查出的问题
-            targetPage = '/pages/issue-list/issue-list';
-            navigationType = 'switchTab';
-            console.log('被检查方 -> 问题列表页面');
-            break;
-            
-          case 'supervisor':
-            // 检查主管：查看所有检查任务和统计分析
-            // 先跳转到问题列表，后续可以添加统计页面
-            targetPage = '/pages/issue-list/issue-list';
-            navigationType = 'switchTab';
-            console.log('检查主管 -> 问题列表页面（待添加统计页面）');
-            break;
-            
-          case 'admin':
-            // 管理员：跳转到问题列表
-            targetPage = '/pages/issue-list/issue-list';
-            navigationType = 'switchTab';
-            console.log('管理员 -> 问题列表页面');
-            break;
-            
-          default:
-            // 默认跳转到问题列表
-            targetPage = '/pages/issue-list/issue-list';
-            navigationType = 'switchTab';
-            console.log('未知角色 -> 默认跳转到问题列表');
         }
-        
-        // 执行跳转
-        if (navigationType === 'switchTab') {
-          uni.switchTab({
-            url: targetPage,
-            success: () => {
-              console.log('跳转到:', targetPage);
-            },
-            fail: (err) => {
-              console.error('跳转失败:', err);
-              // 跳转失败时使用reLaunch重试
-              uni.reLaunch({
-                url: targetPage
-              });
-            }
-          });
-        } else {
-          uni.reLaunch({
-            url: targetPage
-          });
-        }
-      }, 1500); // 1.5秒后跳转
+      });
     }
   }
 }

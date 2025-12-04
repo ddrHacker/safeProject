@@ -1,6 +1,7 @@
 <script>
 	export default {
 		onLaunch: function() {
+			uni.$baseUrl = 'http://127.0.0.1:8000'
 			console.log('App Launch')
 		},
 		onShow: function() {

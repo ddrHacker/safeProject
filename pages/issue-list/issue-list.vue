@@ -42,12 +42,24 @@
         整改截止：{{ item.deadline }}
       </view>
     </view>
-
+	
+	<my-tabbar currentPath="/pages/issue-list/issue-list"></my-tabbar>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+// 1. 导入组件 - 会自动注册，不需要 components 选项
+import MyTabbar from '@/components/my-tabbar/my-tabbar.vue'
+
+// 2. 使用 uni-app 生命周期钩子
+import { onShow } from '@dcloudio/uni-app'
+
+// 3. 生命周期钩子
+onShow(() => {
+  // 双重保险：每次页面显示时都隐藏原生 TabBar
+  uni.hideTabBar({ animation: false })
+})
 
 const tabs = ['全部问题', '已整改', '未整改', '超时未整改']
 const currentTab = ref(0)

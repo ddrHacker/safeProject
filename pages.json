@@ -1,12 +1,12 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-	   {
-	      "path": "pages/login/login",
-	      "style": {
-	        "navigationBarTitleText": "登录",
-	        "navigationStyle": "custom", // 可选：隐藏导航栏
-	        "enablePullDownRefresh": false
-	      }
+	    {
+		    "path": "pages/login/login",
+		    "style": {
+			    "navigationBarTitleText": "登录",
+			    "navigationStyle": "custom", // 可选：隐藏导航栏
+			    "enablePullDownRefresh": false
+		    }
 	    },
 		{
 			"path" : "pages/issue-list/issue-list",
@@ -23,16 +23,24 @@
 			}
 		},
 		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "uni-app"
-			}
-		},
-		{
 			"path" : "pages/add-check/add-check",
 			"style" : 
 			{
 				"navigationBarTitleText" : "新增检查"
+			}
+		},
+		{
+			"path" : "pages/index/index",
+			"style" : 
+			{
+				"navigationBarTitleText" : "index"
+			}
+		},
+		{
+			"path" : "components/my-tabbar/my-tabbar",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
 			}
 		}
 		
@@ -46,26 +54,26 @@
 	      {
 	        "pagePath": "pages/issue-list/issue-list",
 	        "text": "问题列表",
-	        "iconPath": "static/tab-home.png"
-	        // "selectedIconPath": "static/tab-home-active.png"
+	        "iconPath": "static/tab-home.png",
+	        "selectedIconPath": "static/tab-home-active.png"
 	      },
 	      {
 	        "pagePath": "pages/add-check/add-check",
 	        "text": "新增检查",
-	        "iconPath": "static/tab-check.png"
-	        // "selectedIconPath": "static/tab-check-active.png"
+	        "iconPath": "static/tab-check.png",
+	        "selectedIconPath": "static/tab-check-active.png"
 	      },
 	      {
-	        "pagePath": "",
+	        "pagePath": "pages/index/index",
 	        "text": "统计分析",
-	        "iconPath": "static/tab-chart.png"
-	        // "selectedIconPath": "static/tab-chart-active.png"
+	        "iconPath": "static/tab-chart.png",
+	        "selectedIconPath": "static/tab-chart-active.png"
 	      },
 	      {
-	        "pagePath": "",
+	        "pagePath": "pages/index/index",
 	        "text": "我的",
-	        "iconPath": "static/tab-mine.png"
-	        // "selectedIconPath": "static/tab-mine-active.png"
+	        "iconPath": "static/tab-mine.png",
+	        "selectedIconPath": "static/tab-mine-active.png"
 	      }
 	    ]
 	  },
