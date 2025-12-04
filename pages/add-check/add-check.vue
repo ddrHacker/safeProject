@@ -153,6 +153,7 @@
       <button @click="saveDraft">保存草稿</button>
       <button class="submit" @click="submitForm">提交检查</button>
     </view>
+	<my-tabbar currentPath="/pages/add-check/add-check"></my-tabbar>
   </view>
 </template>
 
@@ -186,8 +187,14 @@ const UNIT_DATA = [
     ]
   }
 ];
-
+import MyTabbar from '@/components/my-tabbar/my-tabbar.vue'
 export default {
+	components: { MyTabbar },
+	onShow() {
+		// 双重保险：每次页面显示时都隐藏原生 TabBar
+		uni.hideTabBar({ animation: false })
+	},
+	
   data() {
     return {
       photos: [null, null, null, null],
@@ -334,7 +341,7 @@ export default {
 	    .map((path, index) => ({ name: `file${index}`, uri: path }));
 	
 	  uni.uploadFile({
-	    url: 'http://127.0.0.1:8000/safeDetect/startai/',
+	    url: uni.$baseUrl+'/appv1/startai/',
 	    files: files,
 	    name: 'file',
 	    success: (res) => {
