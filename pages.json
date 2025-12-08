@@ -1,13 +1,13 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-	    {
+	   /* {
 		    "path": "pages/login/login",
 		    "style": {
 			    "navigationBarTitleText": "登录",
 			    "navigationStyle": "custom", // 可选：隐藏导航栏
 			    "enablePullDownRefresh": false
 		    }
-	    },
+	    },*/
 		{
 			"path" : "pages/issue-list/issue-list",
 			"style" : 
@@ -42,8 +42,19 @@
 			{
 				"navigationBarTitleText" : ""
 			}
+		},
+		{
+			"path": "pages/select-unit/select-unit",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/select-law/select-law",
+			"style": {
+				"navigationBarTitleText": ""
+			}
 		}
-		
 	],
 	"tabBar": {
 	    "color": "#666666",
@@ -77,6 +88,7 @@
 	      }
 	    ]
 	  },
+	  
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
