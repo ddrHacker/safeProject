@@ -109,8 +109,8 @@
         </picker>
       </view>
       <view class="form-item">
-        <text class="label">责任人</text>
-        <input class="input" v-model="dutyPerson" placeholder="请输入责任人" />
+        <text class="label">责任部门</text>
+        <input class="input" v-model="dutyPerson" placeholder="请输入责任部门" />
       </view>
     </view>
 
